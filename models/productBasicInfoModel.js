@@ -1,18 +1,18 @@
 module.exports = (sequelize,DataTypes)=>{
-    const Product_Basic_Info = sequelize.define('product_basic_info',{
+    const Basic = sequelize.define('basic',{
         id:{
             type: DataTypes.INTEGER,
             allowNull: false,
+            autoIncrement: true,
             primaryKey: true
         },
         title:{
             type: DataTypes.STRING,
             allowNull: false
         },
-        price:{
-            type:DataTypes.INTEGER
+        productType:{
+            type:DataTypes.STRING
         }
-        
     })
-    return Product_Basic_Info
+    return Basic
 }

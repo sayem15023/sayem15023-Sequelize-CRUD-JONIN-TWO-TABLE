@@ -11,7 +11,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const productRouter = require('./routes/productRouter.js')
-app.use('/api/products',productRouter)
+const productBasicInfoRouter = require('./routes/productBasicInfoRouter')
+const productAdvancedInfoRouter = require('./routes/productAdvancedInfoRouter')
+app.use('/product',productRouter)
+app.use('/product/basicinfo',productBasicInfoRouter)
+app.use('/product/advancedinfo',productAdvancedInfoRouter)
 app.use(function(req,res){
   res.status(404).send({
     status: 404,

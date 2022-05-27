@@ -1,49 +1,24 @@
 const db = require('../models/index')
-const BasicInfo = db.product_basic_info 
-const AdvancedInfo = db.product_advanced_info 
+const pagination = require("../pagination.js")
+const BasicInfo = db.Basic
+const AdvancedInfo = db.Advanced
 
-const addProduct = async(req,res)=>{
+const getAllProducts = async(req, res) => {
   try{
-    const {id,title,price,color,product_type} = req.body;
-    const basicData = {
-      id,
-      title,
-      price
-    }
-    const advanceData = {
-      color,
-      product_id: id,
-      product_type
-    }
-   const data = {
-     ...basicData,
-     ...advanceData
-   }
-    const basic = await BasicInfo.create(basicData)
-    const advance = await AdvancedInfo.create(advanceData)
+  
+    const {page,size} = req.query;
 
-    res.status(200).send({
-         status: 200,
-         message: "Product Id: "+ id + " successfully saved",
-         data: data });
-  }catch(error){
-    res.status(400).send({
-    status: 400,
-    errors: error,
-    message: "Bad Request" });
-  }
-}
-
-const getallProducts = async(req, res) => {
-  try{
+    const pagiInfo = pagination(page,size);
+    
 	  const data = await BasicInfo.findAll({
-      attributes: ['id', 'title','price'],
+      attributes: ['id', 'title','productType'],
 		  include: [{
 			model: AdvancedInfo,
-			where: {},
-			attributes: ['color','product_type']}],
-      limit: 5,
-      offset: 0
+      as: 'advanced',
+      where: {},
+			attributes: ['price','color','basicId']}],
+      limit: pagiInfo.perPage,
+      offset: pagiInfo.skip
     });
 
   if(data.length !== 0){
@@ -67,15 +42,15 @@ const getallProducts = async(req, res) => {
 
 };
 
-const getOneProducts= async(req,res)=>{
-  var id = req.params.id;
+const getOneProduct = async(req,res)=>{
   try{
-     const data = await BasicInfo.findAll({
-      attributes: ['id', 'title','price'],
+      const searchId = parseInt(req.params.id);
+      const data = await BasicInfo.findAll({
+      attributes: ['id', 'title','productType'],
 		  include: [{
 			model: AdvancedInfo,
-      attributes: ['color','product_type']
-      }],where: {id:id}});
+      as: 'advanced',
+			attributes: ['price','color','basicId']}],where: {id:id}});
 
     if(data.length !== 0){
       res.status(200).send({
@@ -97,91 +72,83 @@ const getOneProducts= async(req,res)=>{
   }
 }
 
-const updateProducts= async(req,res)=>{
+// const updateProduct = async(req,res)=>{
  
-  try{
-    const searchId = req.params.id;
-    const mainId = req.body.id ? req.body.id : null;
+//   try{
+//     const searchId = req.params.id;
+//     const data1 = await BasicInfo.findOne({where: {id:searchId}});
+//     const data2 = await AdvancedInfo.findOne({where: {product_id:searchId}});
 
-    if(! mainId || mainId === parseInt(searchId)){
-    const data = await BasicInfo.findAll({
-    attributes: ['id', 'title','price'],
-		include: [{
-		model: AdvancedInfo,
-    attributes: ['color','product_type']
-    }], where: {id:searchId}});
+//     if(data1.length !== 0 || data2.length !== 0){
+//       if(data1.length !== 0){
+//         const updateBasic = await BasicInfo.update({
+//         title : req.body.title,
+//         protuct_type : req.body.product_type
+//         },{where: {id:searchId}});
+//       }
 
-    if(data.length !== 0){
-      const updateBasic = await BasicInfo.update({
-        id : req.body.id,
-        title : req.body.title,
-        price : req.body.price
-      },{where: {id:req.params.id}});
+//       if(data2.length !== 0){
+//          const updateAdvance = await AdvancedInfo.update({
+//          color : req.body.color,
+//          protuct_type : req.body.product_type,
+//          product_id : req.body.product_id
+//       },{where: {product_id:searchId}});
+
+//       }
+//       res.status(200).send({
+//       status: 200,
+//       message: "Product Id: " + searchId + " successfully updated" });
+//     }else{
+//       res.status(404).send({
+//         status: 404,
+//         message: "Product Id: " + searchId + " not found" });
+//     } 
+
+//   }catch(error){
+//     res.status(400).send({
+//     status: 400,
+//     errors: error,
+//     message: "Bad Request" });
+//   }
     
-      const updateAdvance = await AdvancedInfo.update({
-         color : req.body.color,
-         protuct_type : req.body.product_type,
-         product_id : req.body.id
-      },{where: {product_id:req.params.id}});
-  
-      res.status(200).send({
-      status: 200,
-      message: "Product Id: " + searchId + " successfully updated" });
-    }else{
-      res.status(404).send({
-        status: 404,
-        message: "Product Id: " + searchId + " not found" });
-    } 
-  }else{
-    res.status(200).send({
-    status: 200,
-    message: "You can not change Product ID" });
-  } 
-  }catch(error){
-    res.status(400).send({
-    status: 400,
-    errors: error,
-    message: "Bad Request" });
+// };
 
-  }
-    
-};
-const deleteProducts= async(req,res)=>{
-   try{
-    const searchId = req.params.id;
-    const data = await BasicInfo.findAll({
-      attributes: ['id', 'title','price'],
-      include: [{
-      model: AdvancedInfo,
-      attributes: ['color','product_type']
-      }], where: {id: searchId}});
+// const deleteProduct = async(req,res)=>{
+//    try{
+//     const searchId = req.params.id;
+//     const data1 = await BasicInfo.findOne({where: {id:searchId}});
+//     const data2 = await AdvancedInfo.findOne({where: {product_id:searchId}});
 
-      if(data.length !== 0){
-        const basic = await BasicInfo.destroy({where: {id:searchId} });
-        const advance = await AdvancedInfo.destroy({where: {product_id:searchId} });
+//       if(data1.length !== 0 || data2.length !== 0){
+//         if(data1.length !== 0 ){
+//           const basic = await BasicInfo.destroy({where: {id:searchId} });
+//         }
 
-        res.status(200).send({
-              status: 200,
-              message:  "Product Id: "+ searchId + " successfully deleted" });
-      }else{
-        res.status(404).send({
-          status: 404,
-          message:  "Product Id: "+ searchId + " not found" });
-      }
+//         if(data2.length !== 0 ){
+//           const advance = await AdvancedInfo.destroy({where: {product_id:searchId} });
+//         }
 
-   }catch(error){
-     res.status(400).send({
-     status: 400,
-     errors: error,
-     message: "Bad Request"
-   });
-   }
-}
+//         res.status(200).send({
+//               status: 200,
+//               message:  "Product Id: "+ searchId + " successfully deleted" });
+//       }else{
+//         res.status(404).send({
+//           status: 404,
+//           message:  "Product Id: "+ searchId + " not found" });
+//       }
+
+//    }catch(error){
+//      res.status(400).send({
+//      status: 400,
+//      errors: error,
+//      message: "Bad Request"
+//    });
+//    }
+// }
 
 module.exports = {
-    addProduct,
-    getallProducts,
-    getOneProducts,
-    updateProducts,
-    deleteProducts
+    getAllProducts,
+    getOneProduct
+    //updateProduct,
+    //deleteProduct
 }

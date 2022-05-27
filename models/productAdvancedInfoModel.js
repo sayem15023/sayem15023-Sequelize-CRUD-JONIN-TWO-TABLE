@@ -1,22 +1,17 @@
 module.exports = (sequelize,DataTypes)=>{
-    const product_advance_info = sequelize.define('product_advance_info',{
+    const Advanced = sequelize.define('advanced',{
         id:{
             type: DataTypes.INTEGER,
             allowNull: false,
             autoIncrement: true,
             primaryKey: true
         },
-        product_type:{
-            type:DataTypes.STRING
+        price:{
+            type:DataTypes.INTEGER
         },
         color:{
             type:DataTypes.STRING
-        },
-        product_id:{
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        
+        }
     })
-    return product_advance_info
+    return Advanced
 }

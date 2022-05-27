@@ -26,10 +26,12 @@ sequelize.authenticate()
 const db = {}
 db.Sequelize = Sequelize
 db.sequelize = sequelize
-db.product_basic_info = require('./productBasicInfoModel')(sequelize,DataTypes)
-db.product_advanced_info = require('./productAdvancedInfoModel')(sequelize,DataTypes)
-db.product_basic_info.hasOne(db.product_advanced_info,{foreignKey: 'product_id'});
-db.product_advanced_info.belongsTo(db.product_basic_info,{foreignKey: 'product_id'});
+db.Basic = require('./productBasicInfoModel')(sequelize,DataTypes)
+db.Advanced = require('./productAdvancedInfoModel')(sequelize,DataTypes)
+
+db.Basic.hasMany(db.Advanced,{as:"advanced"});
+db.Advanced.belongsTo(db.Basic, {foreignKey: "basicId", as: "basic"});
+
 db.sequelize.sync({force: false})
 .then(()=>{ 
   console.log('yes re-sync')
